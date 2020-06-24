@@ -63,35 +63,27 @@ func decodeHash(mh multihash.Multihash) (mhInfo, error) {
 	return decoded, nil
 }
 
-func printUsage(cmdName string) {
-	fmt.Printf("Usage: %s <encoded-CID>\n", cmdName)
-}
-
 func main() {
 	var encodedCID string
 	if input := os.Args; len(input) != 2 {
-		printUsage(input[0])
-		os.Exit(1)
+		fail(usage(input[0]))
 	} else {
 		encodedCID = input[1]
 	}
 
 	c, err := cid.Decode(encodedCID)
 	if err != nil {
-		fmt.Printf("[ERR] decoding CID failed: %v\n", err)
-		os.Exit(1)
+		fail(fmt.Sprintf("[ERR] decoding CID failed: %v\n", err))
 	}
 
 	prefix, err := decodePrefix(c.Prefix())
 	if err != nil {
-		fmt.Printf("[ERR] decoding CID prefix failed: %v\n", err)
-		os.Exit(1)
+		fail(fmt.Sprintf("[ERR] decoding CID prefix failed: %v\n", err))
 	}
 
 	hash, err := decodeHash(c.Hash())
 	if err != nil {
-		fmt.Printf("[ERR] decoding multihash failed: %v\n", err)
-		os.Exit(1)
+		fail(fmt.Sprintf("[ERR] decoding multihash failed: %v\n", err))
 	}
 
 	fmt.Println(" CID successfully parsed!")
@@ -102,4 +94,16 @@ func main() {
 	fmt.Printf("MHASH  | prefix: %d bytes, hash: %d bytes\n", hash.prefixLength, hash.hashLength)
 	fmt.Printf("MHASH  | B58: %s\n", hash.reprB58)
 	fmt.Printf("MHASH  | HEX: %s\n", hash.reprHex)
+}
+
+func usage(cmdName string) string {
+	return fmt.Sprintf("Usage: %s <encoded-CID>\n", cmdName)
+}
+
+func fail(reason string) {
+	if len(reason) > 0 {
+		fmt.Println(reason)
+	}
+
+	os.Exit(1)
 }
